@@ -25,6 +25,22 @@ async def ask(ctx, *, question):
     # Send the response back to the channel
     await ctx.send(response.choices[0].text)
 
+# TODO: Prompt then ask
+@bot.command()
+async def prompt(ctx, *, prompt):
+    # Call OpenAI's API to generate a response
+    response = openai.Completion.create(
+        engine='davinci',
+        prompt=prompt,
+        max_tokens=60,
+        n=1,
+        stop=None,
+        temperature=0.5
+    )
+
+    # Send the response back to the channel
+    await ctx.send(response.choices[0].text)
+
 # Define a new command
 @bot.command()
 async def hello(ctx):
