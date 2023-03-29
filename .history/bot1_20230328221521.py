@@ -116,7 +116,7 @@ async def prompt3(ctx, *, prompt):
     # Add the user's question to the messages list
     messages.append({"role": "user", "content": question_message.content})
 
-    response_text = generate_chat_completion(messages=messages, model="gpt-3.5-turbo")
+    response_text = generate_chat_completion(messages=messages)
 
     # Send the response back to the channel
     await ctx.send(response_text)

@@ -52,8 +52,7 @@ async def ask(ctx, *, question):
         # {"role": "assistant", "content": "The Los Angeles Dodgers won the World Series in 2020."},
         # {"role": "user", "content": "Where was it played?"}
     ]
-
-    response_text = generate_chat_completion(messages=messages)
+    response_text = generate_chat_completion(messages=messages, model="gpt-3.5-turbo")
 
     # Send the response back to the channel
     await ctx.send(response_text)
@@ -70,7 +69,7 @@ async def ask3(ctx, *, question):
         # {"role": "user", "content": "Where was it played?"}
     ]
 
-    response_text = generate_chat_completion(messages=messages, model="gpt-3.5-turbo")
+    response_text = generate_chat_completion(messages=messages)
 
     # Send the response back to the channel
     await ctx.send(response_text)
@@ -99,7 +98,7 @@ async def prompt(ctx, *, prompt):
     await ctx.send(response_text)
 
 @bot.command()
-async def prompt3(ctx, *, prompt):
+async def prompt(ctx, *, prompt):
     # Call OpenAI's API to generate a response
     messages = [
         {"role": "system", "content": prompt},
@@ -116,7 +115,7 @@ async def prompt3(ctx, *, prompt):
     # Add the user's question to the messages list
     messages.append({"role": "user", "content": question_message.content})
 
-    response_text = generate_chat_completion(messages=messages, model="gpt-3.5-turbo")
+    response_text = generate_chat_completion(messages=messages)
 
     # Send the response back to the channel
     await ctx.send(response_text)

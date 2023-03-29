@@ -52,15 +52,23 @@ async def ask(ctx, *, question):
         # {"role": "assistant", "content": "The Los Angeles Dodgers won the World Series in 2020."},
         # {"role": "user", "content": "Where was it played?"}
     ]
-
-    response_text = generate_chat_completion(messages=messages)
+    # response = openai.Completion.create(
+    #     engine='davinci',
+    #     prompt=question,
+    #     max_tokens=60,
+    #     n=1,
+    #     stop=None,
+    #     temperature=0.5
+    # )
+    response_text = generate_chat_completion(messages=messages, model="gpt-3.5-turbo")
 
     # Send the response back to the channel
+    # await ctx.send(response.choices[0].text)
     await ctx.send(response_text)
 
 # GPT-4
 @bot.command()
-async def ask3(ctx, *, question):
+async def ask4(ctx, *, question):
     # Call OpenAI's API to generate a response
     messages = [
         {"role": "system", "content": "You are a helpful assistant."},
@@ -69,57 +77,32 @@ async def ask3(ctx, *, question):
         # {"role": "assistant", "content": "The Los Angeles Dodgers won the World Series in 2020."},
         # {"role": "user", "content": "Where was it played?"}
     ]
-
-    response_text = generate_chat_completion(messages=messages, model="gpt-3.5-turbo")
+    
+    response_text = generate_chat_completion(messages=messages)
+    # response = openai.Completion.create(
+    #     model="gpt-3.5-turbo",
+    #     messages=messages
+    # )
 
     # Send the response back to the channel
+    # await ctx.send(response.choices[0].text)
     await ctx.send(response_text)
 
+# TODO: Prompt then ask
 @bot.command()
 async def prompt(ctx, *, prompt):
     # Call OpenAI's API to generate a response
-    messages = [
-        {"role": "system", "content": prompt},
-        # {"role": "user", "content": question},
-        # {"role": "user", "content": "Who won the world series in 2020?"},
-        # {"role": "assistant", "content": "The Los Angeles Dodgers won the World Series in 2020."},
-        # {"role": "user", "content": "Where was it played?"}
-    ]
-    await ctx.send("Prompted. Enter message below:")
-
-    # Wait for the next message from the user
-    question_message = await bot.wait_for('message', check=lambda m: m.author == ctx.author)
-
-    # Add the user's question to the messages list
-    messages.append({"role": "user", "content": question_message.content})
-
-    response_text = generate_chat_completion(messages=messages)
+    response = openai.Completion.create(
+        engine='davinci',
+        prompt=prompt,
+        max_tokens=60,
+        n=1,
+        stop=None,
+        temperature=0.5
+    )
 
     # Send the response back to the channel
-    await ctx.send(response_text)
-
-@bot.command()
-async def prompt3(ctx, *, prompt):
-    # Call OpenAI's API to generate a response
-    messages = [
-        {"role": "system", "content": prompt},
-        # {"role": "user", "content": question},
-        # {"role": "user", "content": "Who won the world series in 2020?"},
-        # {"role": "assistant", "content": "The Los Angeles Dodgers won the World Series in 2020."},
-        # {"role": "user", "content": "Where was it played?"}
-    ]
-    await ctx.send("Prompted. Enter message below:")
-
-    # Wait for the next message from the user
-    question_message = await bot.wait_for('message', check=lambda m: m.author == ctx.author)
-
-    # Add the user's question to the messages list
-    messages.append({"role": "user", "content": question_message.content})
-
-    response_text = generate_chat_completion(messages=messages, model="gpt-3.5-turbo")
-
-    # Send the response back to the channel
-    await ctx.send(response_text)
+    await ctx.send(response.choices[0].text)
 
 # Define a new command
 @bot.command()
@@ -131,13 +114,12 @@ if __name__ == '__main__':
 
 
 
-    # messages = [
-    #     {"role": "system", "content": "You are a helpful assistant."},
-    #     {"role": "user", "content": "Translate the following English text to French: 'Hello, how are you?'"}
-    # ]
+    messages = [
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": "Translate the following English text to French: 'Hello, how are you?'"}
+    ]
 
-    # response_text = generate_chat_completion(messages)
-
+    response_text = generate_chat_completion(messages)
     # Run the bot
     bot.run(bot_token)
 
