@@ -8,27 +8,10 @@ import requests
 
 API_ENDPOINT = "https://api.openai.com/v1/chat/completions"
 
-
-# # Create a new bot instance with a prefix and intents
-# intents = discord.Intents.default()
-# intents.members = True
-# intents.message_content = True
-# bot = commands.Bot(command_prefix='/', intents=intents)
-
-# # Acquire bot token
-# with open('bot_token.txt', 'r') as f:
-#     bot_token = f.read().strip()
-
-# # Set up OpenAI API credentials
-# with open('api_key.txt', 'r') as f:
-#     api_key = f.read().strip()
-#     openai.api_key = api_key
-
 def load_credentials(filename):
     with open(filename, 'r') as f:
         credentials = json.load(f)
     return credentials
-
 
 def setup_bot(credentials):
     intents = discord.Intents.default()
@@ -62,8 +45,8 @@ async def generate_chat_completion(messages, model="gpt-4", temperature=1, max_t
             else:
                 raise Exception(f"Error {response.status}: {response.text}")
 
+# TODO: Change these functions below + implement switchmodels command
 
-# @bot.command()
 async def ask(ctx, *, question):
     # Call OpenAI's API to generate a response
     messages = [
@@ -76,7 +59,7 @@ async def ask(ctx, *, question):
     # Send the response back to the channel
     await ctx.send(response_text)
 
-# @bot.command()
+
 async def ask3(ctx, *, question):
     # Call OpenAI's API to generate a response
     messages = [
@@ -89,7 +72,7 @@ async def ask3(ctx, *, question):
     # Send the response back to the channel
     await ctx.send(response_text)
 
-# @bot.command()
+
 async def prompt(ctx, *, prompt):
     # Call OpenAI's API to generate a response
     messages = [
@@ -108,7 +91,7 @@ async def prompt(ctx, *, prompt):
     # Send the response back to the channel
     await ctx.send(response_text)
 
-# @bot.command()
+
 async def prompt3(ctx, *, prompt):
     # Call OpenAI's API to generate a response
     messages = [
@@ -137,7 +120,7 @@ async def send_long_message(ctx, content, max_length=2000):
         await ctx.send(content)
 
 # TODO: Add a prompt list command
-# @bot.command()
+
 async def choose_prompt(ctx):
     # TODO: Expand
     prompts = [
@@ -179,7 +162,7 @@ async def choose_prompt(ctx):
     await send_long_message(ctx, response_text)
 
 
-# @bot.command()
+
 async def hello(ctx):
     # Send a message to the channel where the command was received
     await ctx.send('Hello, world!')
