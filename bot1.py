@@ -68,14 +68,15 @@ async def ask4(ctx, *, question):
                 # {"role": "assistant", "content": "The Los Angeles Dodgers won the World Series in 2020."},
                 # {"role": "user", "content": "Where was it played?"}
             ]
-    # response = generate_chat_completion(messages=messages)
-    response = openai.Completion.create(
-        model="gpt-3.5-turbo",
-        messages=messages
-    )
+    response_text = generate_chat_completion(messages=messages)
+    # response = openai.Completion.create(
+    #     model="gpt-3.5-turbo",
+    #     messages=messages
+    # )
 
     # Send the response back to the channel
-    await ctx.send(response.choices[0].text)
+    # await ctx.send(response.choices[0].text)
+    await ctx.send(response_text)
 
 # TODO: Prompt then ask
 @bot.command()
