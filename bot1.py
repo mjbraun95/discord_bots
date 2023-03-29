@@ -1,26 +1,66 @@
-import openai
-import discord
 from discord.ext import commands
-import requests
-import json
 import aiohttp
+import discord
+import openai
+
+import json
+import requests
 
 API_ENDPOINT = "https://api.openai.com/v1/chat/completions"
 
-# Create a new bot instance with a prefix and intents
-intents = discord.Intents.default()
-intents.members = True
-intents.message_content = True
-bot = commands.Bot(command_prefix='/', intents=intents)
 
-# Acquire bot token
-with open('bot_token.txt', 'r') as f:
-    bot_token = f.read().strip()
+# # Create a new bot instance with a prefix and intents
+# intents = discord.Intents.default()
+# intents.members = True
+# intents.message_content = True
+# bot = commands.Bot(command_prefix='/', intents=intents)
 
-# Set up OpenAI API credentials
-with open('api_key.txt', 'r') as f:
-    api_key = f.read().strip()
-    openai.api_key = api_key
+# # Acquire bot token
+# with open('bot_token.txt', 'r') as f:
+#     bot_token = f.read().strip()
+
+# # Set up OpenAI API credentials
+# with open('api_key.txt', 'r') as f:
+#     api_key = f.read().strip()
+#     openai.api_key = api_key
+
+def load_credentials(filename):
+    with open(filename, 'r') as f:
+        credentials = json.load(f)
+    return credentials
+
+
+def setup_bot(credentials):
+    intents = discord.Intents.default()
+    intents.members = True
+    intents.message_content = True
+    bot = commands.Bot(command_prefix=credentials["command_prefix"], intents=intents)
+    openai.api_key = credentials["api_key"]
+    return bot
+
+
+async def generate_chat_completion(messages, model="gpt-4", temperature=1, max_tokens=None):
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {openai.api_key}",
+    }
+
+    data = {
+        "model": model,
+        "messages": messages,
+        "temperature": temperature,
+    }
+
+    if max_tokens is not None:
+        data["max_tokens"] = max_tokens
+
+    async with aiohttp.ClientSession() as session:
+        async with session.post(API_ENDPOINT, headers=headers, json=data) as response:
+            if response.status == 200:
+                response_data = await response.json()
+                return response_data["choices"][0]["message"]["content"]
+            else:
+                raise Exception(f"Error {response.status}: {response.text}")
 
 
 async def generate_chat_completion(messages, model="gpt-4", temperature=1, max_tokens=None):
@@ -45,28 +85,6 @@ async def generate_chat_completion(messages, model="gpt-4", temperature=1, max_t
                 return response_data["choices"][0]["message"]["content"]
             else:
                 raise Exception(f"Error {response.status}: {response.text}")
-
-# def generate_chat_completion(messages, model="gpt-4", temperature=1, max_tokens=None):
-#     headers = {
-#         "Content-Type": "application/json",
-#         "Authorization": f"Bearer {api_key}",
-#     }
-
-#     data = {
-#         "model": model,
-#         "messages": messages,
-#         "temperature": temperature,
-#     }
-
-#     if max_tokens is not None:
-#         data["max_tokens"] = max_tokens
-
-#     response = requests.post(API_ENDPOINT, headers=headers, data=json.dumps(data))
-
-#     if response.status_code == 200:
-#         return response.json()["choices"][0]["message"]["content"]
-#     else:
-#         raise Exception(f"Error {response.status_code}: {response.text}")
 
 @bot.command()
 async def ask(ctx, *, question):
@@ -189,7 +207,14 @@ async def hello(ctx):
     # Send a message to the channel where the command was received
     await ctx.send('Hello, world!')
 
-if __name__ == '__main__':
-    # Run the bot
-    bot.run(bot_token)
+# if __name__ == '__main__':
+#     # Run the bot
+#     bot.run(bot_token)
 
+if __name__ == '__main__':
+    credentials = load_credentials('config.json')
+    bot = setup_bot(credentials)
+
+    # Add your bot commands here, e.g. bot.add_command(hello)
+
+    bot.run(credentials["bot_token"])
