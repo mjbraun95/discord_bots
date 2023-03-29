@@ -63,30 +63,7 @@ async def generate_chat_completion(messages, model="gpt-4", temperature=1, max_t
                 raise Exception(f"Error {response.status}: {response.text}")
 
 
-async def generate_chat_completion(messages, model="gpt-4", temperature=1, max_tokens=None):
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {api_key}",
-    }
-
-    data = {
-        "model": model,
-        "messages": messages,
-        "temperature": temperature,
-    }
-
-    if max_tokens is not None:
-        data["max_tokens"] = max_tokens
-
-    async with aiohttp.ClientSession() as session:
-        async with session.post(API_ENDPOINT, headers=headers, json=data) as response:
-            if response.status == 200:
-                response_data = await response.json()
-                return response_data["choices"][0]["message"]["content"]
-            else:
-                raise Exception(f"Error {response.status}: {response.text}")
-
-@bot.command()
+# @bot.command()
 async def ask(ctx, *, question):
     # Call OpenAI's API to generate a response
     messages = [
@@ -99,7 +76,7 @@ async def ask(ctx, *, question):
     # Send the response back to the channel
     await ctx.send(response_text)
 
-@bot.command()
+# @bot.command()
 async def ask3(ctx, *, question):
     # Call OpenAI's API to generate a response
     messages = [
@@ -112,7 +89,7 @@ async def ask3(ctx, *, question):
     # Send the response back to the channel
     await ctx.send(response_text)
 
-@bot.command()
+# @bot.command()
 async def prompt(ctx, *, prompt):
     # Call OpenAI's API to generate a response
     messages = [
@@ -131,7 +108,7 @@ async def prompt(ctx, *, prompt):
     # Send the response back to the channel
     await ctx.send(response_text)
 
-@bot.command()
+# @bot.command()
 async def prompt3(ctx, *, prompt):
     # Call OpenAI's API to generate a response
     messages = [
@@ -160,8 +137,9 @@ async def send_long_message(ctx, content, max_length=2000):
         await ctx.send(content)
 
 # TODO: Add a prompt list command
-@bot.command()
+# @bot.command()
 async def choose_prompt(ctx):
+    # TODO: Expand
     prompts = [
         "You are a helpful assistant.",
         "You are an expert on movies.",
@@ -200,21 +178,27 @@ async def choose_prompt(ctx):
     # Send the response back to the channel
     await send_long_message(ctx, response_text)
 
-# Don't forget to include the new command in your main function, if needed.
 
-@bot.command()
+# @bot.command()
 async def hello(ctx):
     # Send a message to the channel where the command was received
     await ctx.send('Hello, world!')
 
-# if __name__ == '__main__':
-#     # Run the bot
-#     bot.run(bot_token)
+# Don't forget to include the new command in your main function, if needed.
+def register_bot_commands(bot):
+    bot.add_command(commands.Command(ask, name="ask"))
+    bot.add_command(commands.Command(ask3, name="ask3"))
+    bot.add_command(commands.Command(prompt, name="prompt"))
+    bot.add_command(commands.Command(prompt3, name="prompt3"))
+    bot.add_command(commands.Command(choose_prompt, name="choose"))
+    bot.add_command(commands.Command(hello, name="hello"))
 
 if __name__ == '__main__':
     credentials = load_credentials('config.json')
     bot = setup_bot(credentials)
 
-    # Add your bot commands here, e.g. bot.add_command(hello)
+    # Register bot commands
+    register_bot_commands(bot)
 
+    # Run the bot
     bot.run(credentials["bot_token"])
