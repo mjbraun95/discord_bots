@@ -8,6 +8,7 @@ import requests
 
 API_ENDPOINT = "https://api.openai.com/v1/chat/completions"
 
+
 def load_credentials(filename):
     with open(filename, 'r') as f:
         credentials = json.load(f)
@@ -45,70 +46,69 @@ async def generate_chat_completion(messages, model="gpt-4", temperature=1, max_t
             else:
                 raise Exception(f"Error {response.status}: {response.text}")
 
-# TODO: Change these functions below + implement switchmodels command
 
-async def ask(ctx, *, question):
-    # Call OpenAI's API to generate a response
-    messages = [
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": question},
-    ]
+# async def ask(ctx, *, question):
+#     # Call OpenAI's API to generate a response
+#     messages = [
+#         {"role": "system", "content": "You are a helpful assistant."},
+#         {"role": "user", "content": question},
+#     ]
 
-    response_text = await generate_chat_completion(messages=messages)
+#     response_text = await generate_chat_completion(messages=messages)
 
-    # Send the response back to the channel
-    await ctx.send(response_text)
-
-
-async def ask3(ctx, *, question):
-    # Call OpenAI's API to generate a response
-    messages = [
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": question},
-    ]
-
-    response_text = await generate_chat_completion(messages=messages, model="gpt-3.5-turbo")
-
-    # Send the response back to the channel
-    await ctx.send(response_text)
+#     # Send the response back to the channel
+#     await ctx.send(response_text)
 
 
-async def prompt(ctx, *, prompt):
-    # Call OpenAI's API to generate a response
-    messages = [
-        {"role": "system", "content": prompt},
-    ]
-    await ctx.send("Prompted. Enter message below:")
+# async def ask3(ctx, *, question):
+#     # Call OpenAI's API to generate a response
+#     messages = [
+#         {"role": "system", "content": "You are a helpful assistant."},
+#         {"role": "user", "content": question},
+#     ]
 
-    # Wait for the next message from the user
-    question_message = await bot.wait_for('message', check=lambda m: m.author == ctx.author)
+#     response_text = await generate_chat_completion(messages=messages, model="gpt-3.5-turbo")
 
-    # Add the user's question to the messages list
-    messages.append({"role": "user", "content": question_message.content})
-
-    response_text = await generate_chat_completion(messages=messages)
-
-    # Send the response back to the channel
-    await ctx.send(response_text)
+#     # Send the response back to the channel
+#     await ctx.send(response_text)
 
 
-async def prompt3(ctx, *, prompt):
-    # Call OpenAI's API to generate a response
-    messages = [
-        {"role": "system", "content": prompt},
-    ]
-    await ctx.send("Prompted. Enter message below:")
+# async def prompt(ctx, *, prompt):
+#     # Call OpenAI's API to generate a response
+#     messages = [
+#         {"role": "system", "content": prompt},
+#     ]
+#     await ctx.send("Prompted. Enter message below:")
 
-    # Wait for the next message from the user
-    question_message = await bot.wait_for('message', check=lambda m: m.author == ctx.author)
+#     # Wait for the next message from the user
+#     question_message = await bot.wait_for('message', check=lambda m: m.author == ctx.author)
 
-    # Add the user's question to the messages list
-    messages.append({"role": "user", "content": question_message.content})
+#     # Add the user's question to the messages list
+#     messages.append({"role": "user", "content": question_message.content})
 
-    response_text = await generate_chat_completion(messages=messages, model="gpt-3.5-turbo")
+#     response_text = await generate_chat_completion(messages=messages)
 
-    # Send the response back to the channel
-    await ctx.send(response_text)
+#     # Send the response back to the channel
+#     await ctx.send(response_text)
+
+
+# async def prompt3(ctx, *, prompt):
+#     # Call OpenAI's API to generate a response
+#     messages = [
+#         {"role": "system", "content": prompt},
+#     ]
+#     await ctx.send("Prompted. Enter message below:")
+
+#     # Wait for the next message from the user
+#     question_message = await bot.wait_for('message', check=lambda m: m.author == ctx.author)
+
+#     # Add the user's question to the messages list
+#     messages.append({"role": "user", "content": question_message.content})
+
+#     response_text = await generate_chat_completion(messages=messages, model="gpt-3.5-turbo")
+
+#     # Send the response back to the channel
+#     await ctx.send(response_text)
 
 async def send_long_message(ctx, content, max_length=2000):
     if len(content) <= max_length:
@@ -119,16 +119,72 @@ async def send_long_message(ctx, content, max_length=2000):
             content = content[max_length:]
         await ctx.send(content)
 
-# TODO: Add a prompt list command
 
 async def choose_prompt(ctx):
-    # TODO: Expand
     prompts = [
+        "You are a business coach.",
+        "You are a freelance coder.",
+        "You are a career counselor.",
+        "You are a carpenter.",
+        "You are a computer engineer.",
+        "You are a copywriter.",
+        "You are a data analyst.",
+        "You are a doctor.",
+        "You are a electrical engineer.",
+        "You are a fashion consultant.",
+        "You are a financial advisor.",
+        "You are a firefighter.",
+        "You are a gardening expert.",
+        "You are a hair stylist.",
+        "You are a handyman.",
+        "You are a health coach.",
         "You are a helpful assistant.",
-        "You are an expert on movies.",
         "You are a history buff.",
+        "You are a home decorator.",
+        "You are a housekeeper.",
+        "You are a judge.",
+        "You are a lawyer.",
+        "You are a life coach.",
+        "You are a locksmith.",
+        "You are a makeup artist.",
+        "You are a marketing consultant.",
+        "You are a mechanic.",
+        "You are a nurse.",
+        "You are a nutritionist.",
+        "You are a personal assistant.",
+        "You are a personal fitness trainer.",
+        "You are a personal shopper.",
+        "You are a personal stylist.",
+        "You are a pet care specialist.",
+        "You are a photographer.",
+        "You are a police officer.",
+        "You are a professional chef.",
+        "You are a professor.",
+        "You are a project manager.",
+        "You are a public relations specialist.",
+        "You are a real estate agent.",
+        "You are a researcher.",
+        "You are a salesperson.",
+        "You are a scientist.",
+        "You are a social media manager.",
+        "You are a social worker.",
+        "You are a software engineer.",
+        "You are a soldier.",
+        "You are a teacher.",
+        "You are a tech support specialist.",
+        "You are a therapist.",
+        "You are a tour guide.",
+        "You are a translator.",
         "You are a travel advisor.",
+        "You are a travel agent.",
+        "You are a tutor.",
+        "You are a video editor.",
+        "You are a web developer.",
+        "You are an astronaut."
+        "You are an event planner.",
+        "You are an expert on movies.",
     ]
+
 
     # Send the list of prompts to the channel
     prompt_list = "\n".join([f"{i+1}. {prompt}" for i, prompt in enumerate(prompts)])
@@ -167,12 +223,54 @@ async def hello(ctx):
     # Send a message to the channel where the command was received
     await ctx.send('Hello, world!')
 
-# Don't forget to include the new command in your main function, if needed.
+async def ask(ctx, *, question):
+    global model
+    # Call OpenAI's API to generate a response
+    messages = [
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": question},
+    ]
+
+    response_text = await generate_chat_completion(messages=messages, model=model)
+
+    # Send the response back to the channel
+    await ctx.send(response_text)
+
+
+async def prompt(ctx, *, prompt):
+    global model
+    # Call OpenAI's API to generate a response
+    messages = [
+        {"role": "system", "content": prompt},
+    ]
+    await ctx.send("Prompted. Enter message below:")
+
+    # Wait for the next message from the user
+    question_message = await bot.wait_for('message', check=lambda m: m.author == ctx.author)
+
+    # Add the user's question to the messages list
+    messages.append({"role": "user", "content": question_message.content})
+
+    response_text = await generate_chat_completion(messages=messages, model=model)
+
+    # Send the response back to the channel
+    await ctx.send(response_text)
+
+model = "gpt-4"
+
+async def switch_model(ctx):
+    global model
+    if model == "gpt-4":
+        model = "gpt-3.5-turbo"
+    else:
+        model = "gpt-4"
+    await ctx.send(f"Model successfully changed to {model}")
+
+
 def register_bot_commands(bot):
     bot.add_command(commands.Command(ask, name="ask"))
-    bot.add_command(commands.Command(ask3, name="ask3"))
     bot.add_command(commands.Command(prompt, name="prompt"))
-    bot.add_command(commands.Command(prompt3, name="prompt3"))
+    bot.add_command(commands.Command(switch_model, name="switch"))
     bot.add_command(commands.Command(choose_prompt, name="choose"))
     bot.add_command(commands.Command(hello, name="hello"))
 
