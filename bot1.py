@@ -222,20 +222,23 @@ async def switch_model(ctx: Any) -> None:
 # TODO: This function throws an error when called.
 async def compare_two_stocks(ctx, stock1: str, stock2: str, period: str = "1y"):
     # Get the stock data from Yahoo Finance
-    stock1_data: DataFrame = yf.download(stock1, period=period)
-    stock2_data: DataFrame = yf.download(stock2, period=period)
+    stock1_data: DataFrame = yf.download(stock1, period=period)[['Close']].dropna()
+    stock2_data: DataFrame = yf.download(stock2, period=period)[['Close']].dropna()
 
     # Align the two dataframes by index (date) and get only the 'Close' columns
-    aligned_data: DataFrame = stock1_data[['Close']].join(stock2_data[['Close']], lsuffix='_stock1', rsuffix='_stock2')
+    aligned_data: DataFrame = stock1_data.join(stock2_data, lsuffix='_stock1', rsuffix='_stock2', how='inner')
 
-    # Drop rows with missing values
-    aligned_data = aligned_data.dropna()
+    # Check if there are at least two data points
+    if len(aligned_data) >= 2:
+        # Get the correlation between the two stocks
+        correlation: float = aligned_data['Close_stock1'].corr(aligned_data['Close_stock2'])
 
-    # Get the correlation between the two stocks
-    correlation: float = aligned_data['Close_stock1'].corr(aligned_data['Close_stock2'])
+        # Send the correlation back to the channel
+        await ctx.send(f"The correlation between {stock1} and {stock2} is {correlation:.2f}.")
+    else:
+        await ctx.send("Not enough data points to calculate the correlation.")
 
-    # Send the correlation back to the channel
-    await ctx.send(f"The correlation between {stock1} and {stock2} is {correlation:.2f}.")
+def register_bot_commands(bot: commands.Bot) -> None:
     bot.add_command(commands.Command(ask, name="ask"))
     bot.add_command(commands.Command(prompt, name="prompt"))
     bot.add_command(commands.Command(switch_model, name="switch"))
