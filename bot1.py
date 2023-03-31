@@ -152,8 +152,8 @@ async def choose_prompt(ctx: Any) -> None:
     # Send the response back to the channel
     await send_long_message(ctx, response_text)
 
-# TODO: Fix this function to allow the discord user to pick the two stocks. This function throws an error when called.
-async def compare_two_stocks(ctx, stock1: str, stock2: str, period: str = "1y"):
+# TODO: This function throws an error when called.
+async def compare_two_stocks(ctx, stock1: str, stock2: str, period: str = "1y") -> None:
     # Get the stock data from Yahoo Finance
     stock1_data: DataFrame = yf.download(stock1, period=period)
     stock2_data: DataFrame = yf.download(stock2, period=period)
@@ -171,11 +171,11 @@ async def compare_two_stocks(ctx, stock1: str, stock2: str, period: str = "1y"):
     await ctx.send(f"The correlation between {stock1} and {stock2} is {correlation:.2f}.")
 
 
-async def hello(ctx):
+async def hello(ctx: Any) -> None:
     # Send a message to the channel where the command was received
     await ctx.send('Hello, world!')
 
-async def ask(ctx, *, question):
+async def ask(ctx: Any, *, question: str) -> None:
     global model
     # Call OpenAI's API to generate a response
     messages = [
@@ -189,7 +189,7 @@ async def ask(ctx, *, question):
     await ctx.send(response_text)
 
 
-async def prompt(ctx, *, prompt):
+async def prompt(ctx: Any, *, prompt: str) -> None:
     global model
     # Call OpenAI's API to generate a response
     messages = [
@@ -210,7 +210,7 @@ async def prompt(ctx, *, prompt):
 
 model = "gpt-4"
 
-async def switch_model(ctx):
+async def switch_model(ctx: Any) -> None:
     global model
     if model == "gpt-4":
         model = "gpt-3.5-turbo"
@@ -219,7 +219,23 @@ async def switch_model(ctx):
     await ctx.send(f"Model successfully changed to {model}")
 
 
-def register_bot_commands(bot):
+# TODO: This function throws an error when called.
+async def compare_two_stocks(ctx, stock1: str, stock2: str, period: str = "1y"):
+    # Get the stock data from Yahoo Finance
+    stock1_data: DataFrame = yf.download(stock1, period=period)
+    stock2_data: DataFrame = yf.download(stock2, period=period)
+
+    # Align the two dataframes by index (date) and get only the 'Close' columns
+    aligned_data: DataFrame = stock1_data[['Close']].join(stock2_data[['Close']], lsuffix='_stock1', rsuffix='_stock2')
+
+    # Drop rows with missing values
+    aligned_data = aligned_data.dropna()
+
+    # Get the correlation between the two stocks
+    correlation: float = aligned_data['Close_stock1'].corr(aligned_data['Close_stock2'])
+
+    # Send the correlation back to the channel
+    await ctx.send(f"The correlation between {stock1} and {stock2} is {correlation:.2f}.")
     bot.add_command(commands.Command(ask, name="ask"))
     bot.add_command(commands.Command(prompt, name="prompt"))
     bot.add_command(commands.Command(switch_model, name="switch"))
