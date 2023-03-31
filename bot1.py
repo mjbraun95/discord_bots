@@ -2,21 +2,20 @@ from discord.ext import commands
 import aiohttp
 import discord
 import openai
-# Import yfinance to get stock data
 import yfinance as yf
 import json
 import requests
 from pandas import DataFrame
+from typing import Any, List, Dict, Union
 
 API_ENDPOINT = "https://api.openai.com/v1/chat/completions"
 
-
-def load_credentials(filename):
+def load_credentials(filename: str) -> Dict[str, Any]:
     with open(filename, 'r') as f:
         credentials = json.load(f)
     return credentials
 
-def setup_bot(credentials):
+def setup_bot(credentials: Dict[str, Any]) -> commands.Bot:
     intents = discord.Intents.default()
     intents.members = True
     intents.message_content = True
@@ -24,8 +23,7 @@ def setup_bot(credentials):
     openai.api_key = credentials["api_key"]
     return bot
 
-
-async def generate_chat_completion(messages, model="gpt-4", temperature=1, max_tokens=None):
+async def generate_chat_completion(messages: List[Dict[str, Any]], model: str = "gpt-4", temperature: float = 1, max_tokens: Union[int, None] = None) -> str:
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {openai.api_key}",
@@ -48,8 +46,7 @@ async def generate_chat_completion(messages, model="gpt-4", temperature=1, max_t
             else:
                 raise Exception(f"Error {response.status}: {response.text}")
 
-
-async def send_long_message(ctx, content, max_length=2000):
+async def send_long_message(ctx: Any, content: str, max_length: int = 2000) -> None:
     if len(content) <= max_length:
         await ctx.send(content)
     else:
@@ -58,8 +55,7 @@ async def send_long_message(ctx, content, max_length=2000):
             content = content[max_length:]
         await ctx.send(content)
 
-
-async def choose_prompt(ctx):
+async def choose_prompt(ctx: Any) -> None:
     prompts = [
         "You are a business coach.",
         "You are a freelance coder.",
