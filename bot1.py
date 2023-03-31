@@ -2,9 +2,11 @@ from discord.ext import commands
 import aiohttp
 import discord
 import openai
-
+# Import yfinance to get stock data
+import yfinance as yf
 import json
 import requests
+from pandas import DataFrame
 
 API_ENDPOINT = "https://api.openai.com/v1/chat/completions"
 
@@ -46,69 +48,6 @@ async def generate_chat_completion(messages, model="gpt-4", temperature=1, max_t
             else:
                 raise Exception(f"Error {response.status}: {response.text}")
 
-
-# async def ask(ctx, *, question):
-#     # Call OpenAI's API to generate a response
-#     messages = [
-#         {"role": "system", "content": "You are a helpful assistant."},
-#         {"role": "user", "content": question},
-#     ]
-
-#     response_text = await generate_chat_completion(messages=messages)
-
-#     # Send the response back to the channel
-#     await ctx.send(response_text)
-
-
-# async def ask3(ctx, *, question):
-#     # Call OpenAI's API to generate a response
-#     messages = [
-#         {"role": "system", "content": "You are a helpful assistant."},
-#         {"role": "user", "content": question},
-#     ]
-
-#     response_text = await generate_chat_completion(messages=messages, model="gpt-3.5-turbo")
-
-#     # Send the response back to the channel
-#     await ctx.send(response_text)
-
-
-# async def prompt(ctx, *, prompt):
-#     # Call OpenAI's API to generate a response
-#     messages = [
-#         {"role": "system", "content": prompt},
-#     ]
-#     await ctx.send("Prompted. Enter message below:")
-
-#     # Wait for the next message from the user
-#     question_message = await bot.wait_for('message', check=lambda m: m.author == ctx.author)
-
-#     # Add the user's question to the messages list
-#     messages.append({"role": "user", "content": question_message.content})
-
-#     response_text = await generate_chat_completion(messages=messages)
-
-#     # Send the response back to the channel
-#     await ctx.send(response_text)
-
-
-# async def prompt3(ctx, *, prompt):
-#     # Call OpenAI's API to generate a response
-#     messages = [
-#         {"role": "system", "content": prompt},
-#     ]
-#     await ctx.send("Prompted. Enter message below:")
-
-#     # Wait for the next message from the user
-#     question_message = await bot.wait_for('message', check=lambda m: m.author == ctx.author)
-
-#     # Add the user's question to the messages list
-#     messages.append({"role": "user", "content": question_message.content})
-
-#     response_text = await generate_chat_completion(messages=messages, model="gpt-3.5-turbo")
-
-#     # Send the response back to the channel
-#     await ctx.send(response_text)
 
 async def send_long_message(ctx, content, max_length=2000):
     if len(content) <= max_length:
@@ -217,6 +156,23 @@ async def choose_prompt(ctx):
     # Send the response back to the channel
     await send_long_message(ctx, response_text)
 
+# TODO: Fix this function to allow the discord user to pick the two stocks. This function throws an error when called.
+async def compare_two_stocks(ctx, stock1: str, stock2: str, period: str = "1y"):
+    # Get the stock data from Yahoo Finance
+    stock1_data: DataFrame = yf.download(stock1, period=period)
+    stock2_data: DataFrame = yf.download(stock2, period=period)
+
+    # Align the two dataframes by index (date) and get only the 'Close' columns
+    aligned_data: DataFrame = stock1_data[['Close']].join(stock2_data[['Close']], lsuffix='_stock1', rsuffix='_stock2')
+
+    # Drop rows with missing values
+    aligned_data = aligned_data.dropna()
+
+    # Get the correlation between the two stocks
+    correlation: float = aligned_data['Close_stock1'].corr(aligned_data['Close_stock2'])
+
+    # Send the correlation back to the channel
+    await ctx.send(f"The correlation between {stock1} and {stock2} is {correlation:.2f}.")
 
 
 async def hello(ctx):
@@ -272,6 +228,7 @@ def register_bot_commands(bot):
     bot.add_command(commands.Command(prompt, name="prompt"))
     bot.add_command(commands.Command(switch_model, name="switch"))
     bot.add_command(commands.Command(choose_prompt, name="choose"))
+    bot.add_command(commands.Command(compare_two_stocks, name="compare"))
     bot.add_command(commands.Command(hello, name="hello"))
 
 if __name__ == '__main__':
