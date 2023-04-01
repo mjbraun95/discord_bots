@@ -1,12 +1,14 @@
 from discord.ext import commands
-import aiohttp
-import discord
-import openai
-import yfinance as yf
-import json
-import requests
 from pandas import DataFrame
 from typing import Any, List, Dict, Union
+import aiohttp
+import discord
+import json
+import numpy as np
+import openai
+import requests
+import yfinance as yf
+from tabulate import tabulate
 
 API_ENDPOINT = "https://api.openai.com/v1/chat/completions"
 
@@ -152,23 +154,136 @@ async def choose_prompt(ctx: Any) -> None:
     # Send the response back to the channel
     await send_long_message(ctx, response_text)
 
-# TODO: This function throws an error when called.
-async def compare_two_stocks(ctx, stock1: str, stock2: str, period: str = "1y") -> None:
+
+async def compare_two_stocks(ctx, stock1: str, stock2: str, period: str = "1y"):
     # Get the stock data from Yahoo Finance
-    stock1_data: DataFrame = yf.download(stock1, period=period)
-    stock2_data: DataFrame = yf.download(stock2, period=period)
+    stock1_data: DataFrame = yf.download(stock1, period=period)[['Close']].dropna()
+    stock2_data: DataFrame = yf.download(stock2, period=period)[['Close']].dropna()
 
     # Align the two dataframes by index (date) and get only the 'Close' columns
-    aligned_data: DataFrame = stock1_data[['Close']].join(stock2_data[['Close']], lsuffix='_stock1', rsuffix='_stock2')
+    aligned_data: DataFrame = stock1_data.join(stock2_data, lsuffix='_stock1', rsuffix='_stock2', how='inner')
 
-    # Drop rows with missing values
-    aligned_data = aligned_data.dropna()
+    # Check if there are at least two data points
+    if len(aligned_data) >= 2:
+        # Calculate basic statistics for each stock
+        stock1_mean = aligned_data['Close_stock1'].mean()
+        stock2_mean = aligned_data['Close_stock2'].mean()
 
-    # Get the correlation between the two stocks
-    correlation: float = aligned_data['Close_stock1'].corr(aligned_data['Close_stock2'])
+        stock1_median = aligned_data['Close_stock1'].median()
+        stock2_median = aligned_data['Close_stock2'].median()
 
-    # Send the correlation back to the channel
-    await ctx.send(f"The correlation between {stock1} and {stock2} is {correlation:.2f}.")
+        stock1_std = aligned_data['Close_stock1'].std()
+        stock2_std = aligned_data['Close_stock2'].std()
+
+        # Calculate the percentage change for each stock
+        stock1_pct_change = aligned_data['Close_stock1'].pct_change().dropna()
+        stock2_pct_change = aligned_data['Close_stock2'].pct_change().dropna()
+
+        # Calculate the covariance and correlation between the two stocks
+        covariance = np.cov(stock1_pct_change, stock2_pct_change)[0][1]
+        correlation = np.corrcoef(stock1_pct_change, stock2_pct_change)[0][1]
+
+        # Get market data for beta calculation
+        market_data: DataFrame = yf.download('^GSPC', period=period)[['Close']].dropna()
+        aligned_market_data: DataFrame = stock1_data.join(market_data, rsuffix='_market', how='inner')
+        market_pct_change = aligned_market_data['Close_market'].pct_change().dropna()
+
+        # Calculate beta for each stock
+        stock1_beta = np.cov(stock1_pct_change, market_pct_change)[0][1] / np.var(market_pct_change)
+        stock2_beta = np.cov(stock2_pct_change, market_pct_change)[0][1] / np.var(market_pct_change)
+
+        # Calculate cumulative returns for each stock
+        stock1_cumulative_return = (1 + stock1_pct_change).cumprod()[-1] - 1
+        stock2_cumulative_return = (1 + stock2_pct_change).cumprod()[-1] - 1
+
+        # Send the statistics back to the channel
+        # Send the statistics back to the channel
+        table_data = [
+            ["Mean", f"{stock1_mean:.2f}", f"{stock2_mean:.2f}"],
+            ["Median", f"{stock1_median:.2f}", f"{stock2_median:.2f}"],
+            ["Standard Deviation", f"{stock1_std:.2f}", f"{stock2_std:.2f}"],
+            ["Covariance", f"{covariance:.8f}", ""],
+            ["Correlation Coefficient", f"{correlation:.2f}", ""],
+            ["Beta", f"{stock1_beta:.2f}", f"{stock2_beta:.2f}"],
+            ["Cumulative Returns", f"{stock1_cumulative_return:.2%}", f"{stock2_cumulative_return:.2%}"]
+        ]
+
+        response = f"**Statistics for {stock1} and {stock2}**\n"
+        response += f"```{tabulate(table_data, headers=[stock1, stock2], tablefmt='grid')}```"
+        # response = f"**Statistics for {stock1} and {stock2}**\n"
+        # response += f"Mean: {stock1_mean:.2f}, {stock2_mean:.2f}\n"
+        # response += f"Median: {stock1_median:.2f}, {stock2_median:.2f}\n"
+        # response += f"Standard Deviation: {stock1_std:.2f}, {stock2_std:.2f}\n"
+        # response += f"Covariance: {covariance:.8f}\n"
+        # response += f"Correlation Coefficient: {correlation:.2f}\n"
+        # response += f"Beta: {stock1_beta:.2f}, {stock2_beta:.2f}\n"
+        # response += f"Cumulative Returns: {stock1_cumulative_return:.2%}, {stock2_cumulative_return:.2%}"
+        await ctx.send(response)
+    else:
+        await ctx.send("Not enough data points to calculate the statistics.")
+    global model
+    # Call OpenAI's API to generate a response
+    print("Compare the stock prices and provide insights of {stock1} and {stock2} of the past {period}. Here is some information about {stock1} and {stock2}:\n{table_data}".format(stock1=stock1, stock2=stock2, period=period, table_data=table_data))
+    messages = [
+        {"role": "system", "content": "You are a highly skilled wall street stock market expert."},
+        {"role": "user", "content": "Compare the stock prices and provide insights of {stock1} and {stock2} of the past {period}. Here is some information about {stock1} and {stock2}:\n{table_data}"}
+    ]
+
+    response_text = await generate_chat_completion(messages=messages, model=model)
+
+# async def compare_two_stocks(ctx, stock1: str, stock2: str, period: str = "1y") -> None:
+#     # Get the stock data from Yahoo Finance
+#     stock1_data: DataFrame = yf.download(stock1, period=period)
+#     stock2_data: DataFrame = yf.download(stock2, period=period)
+
+#     # Get market data for beta calculation
+#     market_data: DataFrame = yf.download('^GSPC', period=period)
+
+#     # Align the dataframes by index (date) and get only the 'Close' columns
+#     aligned_data: DataFrame = stock1_data[['Close']].join(stock2_data[['Close']], lsuffix='_stock1', rsuffix='_stock2').join(market_data[['Close']], rsuffix='_market')
+
+#     # Drop rows with missing values
+#     aligned_data = aligned_data.dropna()
+
+#     # Calculate basic statistics for each stock
+#     stock1_mean = aligned_data['Close_stock1'].mean()
+#     stock2_mean = aligned_data['Close_stock2'].mean()
+
+#     stock1_median = aligned_data['Close_stock1'].median()
+#     stock2_median = aligned_data['Close_stock2'].median()
+
+#     stock1_std = aligned_data['Close_stock1'].std()
+#     stock2_std = aligned_data['Close_stock2'].std()
+
+#     # Calculate the percentage change for each stock and the market
+#     stock1_pct_change = aligned_data['Close_stock1'].pct_change().dropna()
+#     stock2_pct_change = aligned_data['Close_stock2'].pct_change().dropna()
+#     market_pct_change = aligned_data['Close_market'].pct_change().dropna()
+
+#     # Calculate the covariance and correlation between the two stocks
+#     covariance = np.cov(stock1_pct_change, stock2_pct_change)[0][1]
+#     correlation = np.corrcoef(stock1_pct_change, stock2_pct_change)[0][1]
+
+#     # Calculate beta for each stock
+#     stock1_beta = np.cov(stock1_pct_change, market_pct_change)[0][1] / np.var(market_pct_change)
+#     stock2_beta = np.cov(stock2_pct_change, market_pct_change)[0][1]
+
+#     # Calculate cumulative returns for each stock
+#     stock1_cumulative_return = (1 + stock1_pct_change).cumprod()[-1] - 1
+#     stock2_cumulative_return = (1 + stock2_pct_change).cumprod()[-1] - 1
+
+#     # Send the statistics back to the channel
+#     response = f"**Statistics for {stock1} and {stock2}**\n"
+#     response += f"Mean: {stock1_mean:.2f}, {stock2_mean:.2f}\n"
+#     response += f"Median: {stock1_median:.2f}, {stock2_median:.2f}\n"
+#     response += f"Standard Deviation: {stock1_std:.2f}, {stock2_std:.2f}\n"
+#     response += f"Covariance: {covariance:.8f}\n"
+#     response += f"Correlation Coefficient: {correlation:.2f}\n"
+#     response += f"Beta: {stock1_beta:.2f}, {stock2_beta:.2f}\n"
+#     response += f"Cumulative Returns: {stock1_cumulative_return:.2%}, {stock2_cumulative_return:.2%}"
+
+#     await ctx.send(response)
+
 
 
 async def hello(ctx: Any) -> None:
@@ -218,25 +333,6 @@ async def switch_model(ctx: Any) -> None:
         model = "gpt-4"
     await ctx.send(f"Model successfully changed to {model}")
 
-
-# TODO: This function throws an error when called.
-async def compare_two_stocks(ctx, stock1: str, stock2: str, period: str = "1y"):
-    # Get the stock data from Yahoo Finance
-    stock1_data: DataFrame = yf.download(stock1, period=period)[['Close']].dropna()
-    stock2_data: DataFrame = yf.download(stock2, period=period)[['Close']].dropna()
-
-    # Align the two dataframes by index (date) and get only the 'Close' columns
-    aligned_data: DataFrame = stock1_data.join(stock2_data, lsuffix='_stock1', rsuffix='_stock2', how='inner')
-
-    # Check if there are at least two data points
-    if len(aligned_data) >= 2:
-        # Get the correlation between the two stocks
-        correlation: float = aligned_data['Close_stock1'].corr(aligned_data['Close_stock2'])
-
-        # Send the correlation back to the channel
-        await ctx.send(f"The correlation between {stock1} and {stock2} is {correlation:.2f}.")
-    else:
-        await ctx.send("Not enough data points to calculate the correlation.")
 
 def register_bot_commands(bot: commands.Bot) -> None:
     bot.add_command(commands.Command(ask, name="ask"))

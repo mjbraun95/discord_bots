@@ -1,8 +1,11 @@
 {
     "cSpell.words": [
         "aiohttp",
+        "corrcoef",
+        "cumprod",
         "dataframes",
         "dropna",
+        "GSPC",
         "lsuffix",
         "openai",
         "rsuffix",
