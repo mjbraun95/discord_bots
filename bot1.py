@@ -226,10 +226,11 @@ async def compare_two_stocks(ctx, stock1: str, stock2: str, period: str = "1y"):
     print("Compare the stock prices and provide insights of {stock1} and {stock2} of the past {period}. Here is some information about {stock1} and {stock2}:\n{table_data}".format(stock1=stock1, stock2=stock2, period=period, table_data=table_data))
     messages = [
         {"role": "system", "content": "You are a highly skilled wall street stock market expert."},
-        {"role": "user", "content": "Compare the stock prices and provide insights of {stock1} and {stock2} of the past {period}. Here is some information about {stock1} and {stock2}:\n{table_data}"}
+        {"role": "user", "content": "Compare the stock prices and provide insights of {stock1} and {stock2} of the past {period}. Here is some information about {stock1} and {stock2}:\n{table_data}".format(stock1=stock1, stock2=stock2, period=period, table_data=table_data)}
     ]
 
     response_text = await generate_chat_completion(messages=messages, model=model)
+    await send_long_message(ctx, response_text)
 
 # async def compare_two_stocks(ctx, stock1: str, stock2: str, period: str = "1y") -> None:
 #     # Get the stock data from Yahoo Finance
