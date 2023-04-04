@@ -315,20 +315,6 @@ async def ask(ctx: Any, *, question: str) -> None:
     # Send the response back to the channel
     await ctx.send(response_text)
 
-# async def ask(ctx: Any, *, question: str) -> None:
-#     global model
-#     # Call OpenAI's API to generate a response
-#     messages = [
-#         {"role": "system", "content": "You are a helpful assistant."},
-#         {"role": "user", "content": question},
-#     ]
-
-#     response_text = await generate_chat_completion(messages=messages, model=model)
-
-#     # Send the response back to the channel
-#     await ctx.send(response_text)
-
-
 async def prompt(ctx: Any, *, prompt: str) -> None:
     global model
     # Call OpenAI's API to generate a response
