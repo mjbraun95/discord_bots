@@ -291,18 +291,42 @@ async def hello(ctx: Any) -> None:
     # Send a message to the channel where the command was received
     await ctx.send('Hello, world!')
 
+conversation_history = []
+
+# TODO: test
 async def ask(ctx: Any, *, question: str) -> None:
     global model
+    global conversation_history
+
+    # Add the new question to the conversation history
+    conversation_history.append({"role": "user", "content": question})
+
     # Call OpenAI's API to generate a response
     messages = [
         {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": question},
+        *conversation_history
     ]
 
     response_text = await generate_chat_completion(messages=messages, model=model)
 
+    # Add the assistant's response to the conversation history
+    conversation_history.append({"role": "assistant", "content": response_text})
+
     # Send the response back to the channel
     await ctx.send(response_text)
+
+# async def ask(ctx: Any, *, question: str) -> None:
+#     global model
+#     # Call OpenAI's API to generate a response
+#     messages = [
+#         {"role": "system", "content": "You are a helpful assistant."},
+#         {"role": "user", "content": question},
+#     ]
+
+#     response_text = await generate_chat_completion(messages=messages, model=model)
+
+#     # Send the response back to the channel
+#     await ctx.send(response_text)
 
 
 async def prompt(ctx: Any, *, prompt: str) -> None:
