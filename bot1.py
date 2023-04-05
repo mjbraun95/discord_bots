@@ -292,28 +292,60 @@ async def hello(ctx: Any) -> None:
     await ctx.send('Hello, world!')
 
 conversation_history = []
-
-# TODO: test
-async def ask(ctx: Any, *, question: str) -> None:
-    global model
+async def clear(ctx: Any) -> None:
     global conversation_history
+    conversation_history = []
+    # Send the response back to the channel
+    await ctx.send("Conversation history cleared!")
 
-    # Add the new question to the conversation history
-    conversation_history.append({"role": "user", "content": question})
+# async def ask(ctx: Any, *, question: str) -> None:
+#     global model
+#     global conversation_history
 
-    # Call OpenAI's API to generate a response
+#     # Add the new question to the conversation history
+#     conversation_history.append({"role": "user", "content": question})
+
+#     # Call OpenAI's API to generate a response
+#     messages = [
+#         {"role": "system", "content": "You are a helpful assistant."},
+#         *conversation_history
+#     ]
+
+#     response_text = await generate_chat_completion(messages=messages, model=model)
+
+#     # Add the assistant's response to the conversation history
+#     conversation_history.append({"role": "assistant", "content": response_text})
+
+#     # Send the response back to the channel
+#     await ctx.send(response_text)
+
+async def ask(ctx, *, question):
+    global model
+    conversation_active = True
+
     messages = [
         {"role": "system", "content": "You are a helpful assistant."},
-        *conversation_history
+        {"role": "user", "content": question},
     ]
 
-    response_text = await generate_chat_completion(messages=messages, model=model)
+    while conversation_active:
+        response_text = await generate_chat_completion(messages=messages, model=model)
 
-    # Add the assistant's response to the conversation history
-    conversation_history.append({"role": "assistant", "content": response_text})
+        # Send the response back to the channel
+        await ctx.send(response_text)
 
-    # Send the response back to the channel
-    await ctx.send(response_text)
+        # Wait for the next message from the user
+        def check_follow_up(m):
+            return m.author == ctx.author
+
+        follow_up_message = await bot.wait_for('message', check=check_follow_up)
+
+        # Check if the follow-up message starts with the command prefix
+        if follow_up_message.content.startswith(credentials["command_prefix"]):
+            conversation_active = False
+        else:
+            # Add the user's follow-up message to the messages list
+            messages.append({"role": "user", "content": follow_up_message.content})
 
 async def prompt(ctx: Any, *, prompt: str) -> None:
     global model
