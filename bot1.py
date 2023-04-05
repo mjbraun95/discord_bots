@@ -57,70 +57,13 @@ async def send_long_message(ctx: Any, content: str, max_length: int = 2000) -> N
             content = content[max_length:]
         await ctx.send(content)
 
+def load_prompts(filename: str) -> list:
+    with open(filename, 'r') as f:
+        prompts = json.load(f)
+    return prompts
+
 async def choose_prompt(ctx: Any) -> None:
-    prompts = [
-        "You are a business coach.",
-        "You are a freelance coder.",
-        "You are a career counselor.",
-        "You are a carpenter.",
-        "You are a computer engineer.",
-        "You are a copywriter.",
-        "You are a data analyst.",
-        "You are a doctor.",
-        "You are a electrical engineer.",
-        "You are a fashion consultant.",
-        "You are a financial advisor.",
-        "You are a firefighter.",
-        "You are a gardening expert.",
-        "You are a hair stylist.",
-        "You are a handyman.",
-        "You are a health coach.",
-        "You are a helpful assistant.",
-        "You are a history buff.",
-        "You are a home decorator.",
-        "You are a housekeeper.",
-        "You are a judge.",
-        "You are a lawyer.",
-        "You are a life coach.",
-        "You are a locksmith.",
-        "You are a makeup artist.",
-        "You are a marketing consultant.",
-        "You are a mechanic.",
-        "You are a nurse.",
-        "You are a nutritionist.",
-        "You are a personal assistant.",
-        "You are a personal fitness trainer.",
-        "You are a personal shopper.",
-        "You are a personal stylist.",
-        "You are a pet care specialist.",
-        "You are a photographer.",
-        "You are a police officer.",
-        "You are a professional chef.",
-        "You are a professor.",
-        "You are a project manager.",
-        "You are a public relations specialist.",
-        "You are a real estate agent.",
-        "You are a researcher.",
-        "You are a salesperson.",
-        "You are a scientist.",
-        "You are a social media manager.",
-        "You are a social worker.",
-        "You are a software engineer.",
-        "You are a soldier.",
-        "You are a teacher.",
-        "You are a tech support specialist.",
-        "You are a therapist.",
-        "You are a tour guide.",
-        "You are a translator.",
-        "You are a travel advisor.",
-        "You are a travel agent.",
-        "You are a tutor.",
-        "You are a video editor.",
-        "You are a web developer.",
-        "You are an astronaut."
-        "You are an event planner.",
-        "You are an expert on movies.",
-    ]
+    prompts = load_prompts('prompts.json')
 
 
     # Send the list of prompts to the channel
@@ -298,28 +241,7 @@ async def clear(ctx: Any) -> None:
     # Send the response back to the channel
     await ctx.send("Conversation history cleared!")
 
-# async def ask(ctx: Any, *, question: str) -> None:
-#     global model
-#     global conversation_history
-
-#     # Add the new question to the conversation history
-#     conversation_history.append({"role": "user", "content": question})
-
-#     # Call OpenAI's API to generate a response
-#     messages = [
-#         {"role": "system", "content": "You are a helpful assistant."},
-#         *conversation_history
-#     ]
-
-#     response_text = await generate_chat_completion(messages=messages, model=model)
-
-#     # Add the assistant's response to the conversation history
-#     conversation_history.append({"role": "assistant", "content": response_text})
-
-#     # Send the response back to the channel
-#     await ctx.send(response_text)
-
-async def ask(ctx, *, question):
+async def newchat(ctx, *, question):
     global model
     conversation_active = True
 
@@ -366,7 +288,8 @@ async def prompt(ctx: Any, *, prompt: str) -> None:
     # Send the response back to the channel
     await ctx.send(response_text)
 
-model = "gpt-4"
+model = "gpt-3.5-turbo"
+# model = "gpt-4"
 
 async def switch_model(ctx: Any) -> None:
     global model
@@ -378,12 +301,13 @@ async def switch_model(ctx: Any) -> None:
 
 
 def register_bot_commands(bot: commands.Bot) -> None:
-    bot.add_command(commands.Command(ask, name="ask"))
+    bot.add_command(commands.Command(newchat, name="newchat"))
     bot.add_command(commands.Command(prompt, name="prompt"))
     bot.add_command(commands.Command(switch_model, name="switch"))
     bot.add_command(commands.Command(choose_prompt, name="choose"))
     bot.add_command(commands.Command(compare_two_stocks, name="compare"))
     bot.add_command(commands.Command(hello, name="hello"))
+    bot.add_command(commands.Command(clear, name="clear"))
 
 if __name__ == '__main__':
     credentials = load_credentials('config.json')
