@@ -43,7 +43,7 @@ async def generate_chat_completion(messages: List[Dict[str, Any]], model: str = 
     async with aiohttp.ClientSession() as session:
         async with session.post(API_ENDPOINT, headers=headers, json=data) as response:
             if response.status == 200:
-                response_data = await response.json()
+                response_data: Dict[str, Any] = await response.json()
                 return response_data["choices"][0]["message"]["content"]
             else:
                 raise Exception(f"Error {response.status}: {response.text}")
@@ -57,14 +57,13 @@ async def send_long_message(ctx: Any, content: str, max_length: int = 2000) -> N
             content = content[max_length:]
         await ctx.send(content)
 
-def load_prompts(filename: str) -> list:
+def load_prompts(filename: str) -> List[str]:
     with open(filename, 'r') as f:
         prompts = json.load(f)
     return prompts
 
 async def choose_prompt(ctx: Any) -> None:
     prompts = load_prompts('prompts.json')
-
 
     # Send the list of prompts to the channel
     prompt_list = "\n".join([f"{i+1}. {prompt}" for i, prompt in enumerate(prompts)])
@@ -73,8 +72,6 @@ async def choose_prompt(ctx: Any) -> None:
     # Wait for the user to select a prompt
     def check_prompt_choice(m):
         return m.author == ctx.author and m.content.isdigit() and 1 <= int(m.content) <= len(prompts)
-
-
 
     chosen_prompt_msg = await bot.wait_for('message', check=check_prompt_choice)
     chosen_prompt_index = int(chosen_prompt_msg.content) - 1
@@ -175,61 +172,6 @@ async def compare_two_stocks(ctx, stock1: str, stock2: str, period: str = "1y"):
     response_text = await generate_chat_completion(messages=messages, model=model)
     await send_long_message(ctx, response_text)
 
-# async def compare_two_stocks(ctx, stock1: str, stock2: str, period: str = "1y") -> None:
-#     # Get the stock data from Yahoo Finance
-#     stock1_data: DataFrame = yf.download(stock1, period=period)
-#     stock2_data: DataFrame = yf.download(stock2, period=period)
-
-#     # Get market data for beta calculation
-#     market_data: DataFrame = yf.download('^GSPC', period=period)
-
-#     # Align the dataframes by index (date) and get only the 'Close' columns
-#     aligned_data: DataFrame = stock1_data[['Close']].join(stock2_data[['Close']], lsuffix='_stock1', rsuffix='_stock2').join(market_data[['Close']], rsuffix='_market')
-
-#     # Drop rows with missing values
-#     aligned_data = aligned_data.dropna()
-
-#     # Calculate basic statistics for each stock
-#     stock1_mean = aligned_data['Close_stock1'].mean()
-#     stock2_mean = aligned_data['Close_stock2'].mean()
-
-#     stock1_median = aligned_data['Close_stock1'].median()
-#     stock2_median = aligned_data['Close_stock2'].median()
-
-#     stock1_std = aligned_data['Close_stock1'].std()
-#     stock2_std = aligned_data['Close_stock2'].std()
-
-#     # Calculate the percentage change for each stock and the market
-#     stock1_pct_change = aligned_data['Close_stock1'].pct_change().dropna()
-#     stock2_pct_change = aligned_data['Close_stock2'].pct_change().dropna()
-#     market_pct_change = aligned_data['Close_market'].pct_change().dropna()
-
-#     # Calculate the covariance and correlation between the two stocks
-#     covariance = np.cov(stock1_pct_change, stock2_pct_change)[0][1]
-#     correlation = np.corrcoef(stock1_pct_change, stock2_pct_change)[0][1]
-
-#     # Calculate beta for each stock
-#     stock1_beta = np.cov(stock1_pct_change, market_pct_change)[0][1] / np.var(market_pct_change)
-#     stock2_beta = np.cov(stock2_pct_change, market_pct_change)[0][1]
-
-#     # Calculate cumulative returns for each stock
-#     stock1_cumulative_return = (1 + stock1_pct_change).cumprod()[-1] - 1
-#     stock2_cumulative_return = (1 + stock2_pct_change).cumprod()[-1] - 1
-
-#     # Send the statistics back to the channel
-#     response = f"**Statistics for {stock1} and {stock2}**\n"
-#     response += f"Mean: {stock1_mean:.2f}, {stock2_mean:.2f}\n"
-#     response += f"Median: {stock1_median:.2f}, {stock2_median:.2f}\n"
-#     response += f"Standard Deviation: {stock1_std:.2f}, {stock2_std:.2f}\n"
-#     response += f"Covariance: {covariance:.8f}\n"
-#     response += f"Correlation Coefficient: {correlation:.2f}\n"
-#     response += f"Beta: {stock1_beta:.2f}, {stock2_beta:.2f}\n"
-#     response += f"Cumulative Returns: {stock1_cumulative_return:.2%}, {stock2_cumulative_return:.2%}"
-
-#     await ctx.send(response)
-
-
-
 async def hello(ctx: Any) -> None:
     # Send a message to the channel where the command was received
     await ctx.send('Hello, world!')
@@ -254,7 +196,7 @@ async def newchat(ctx, *, question):
         response_text = await generate_chat_completion(messages=messages, model=model)
 
         # Send the response back to the channel
-        await ctx.send(response_text)
+        await send_long_message(ctx, response_text)
 
         # Wait for the next message from the user
         def check_follow_up(m):
@@ -286,7 +228,7 @@ async def prompt(ctx: Any, *, prompt: str) -> None:
     response_text = await generate_chat_completion(messages=messages, model=model)
 
     # Send the response back to the channel
-    await ctx.send(response_text)
+    await send_long_message(ctx, response_text)
 
 model = "gpt-3.5-turbo"
 # model = "gpt-4"
