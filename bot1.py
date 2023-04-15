@@ -1,5 +1,6 @@
 from discord.ext import commands
 from pandas import DataFrame
+from tabulate import tabulate
 from typing import Any, List, Dict, Union
 import aiohttp
 import discord
@@ -8,7 +9,6 @@ import numpy as np
 import openai
 import requests
 import yfinance as yf
-from tabulate import tabulate
 
 API_ENDPOINT = "https://api.openai.com/v1/chat/completions"
 
@@ -150,14 +150,14 @@ async def compare_two_stocks(ctx, stock1: str, stock2: str, period: str = "1y"):
 
         response = f"**Statistics for {stock1} and {stock2}**\n"
         response += f"```{tabulate(table_data, headers=[stock1, stock2], tablefmt='grid')}```"
-        # response = f"**Statistics for {stock1} and {stock2}**\n"
-        # response += f"Mean: {stock1_mean:.2f}, {stock2_mean:.2f}\n"
-        # response += f"Median: {stock1_median:.2f}, {stock2_median:.2f}\n"
-        # response += f"Standard Deviation: {stock1_std:.2f}, {stock2_std:.2f}\n"
-        # response += f"Covariance: {covariance:.8f}\n"
-        # response += f"Correlation Coefficient: {correlation:.2f}\n"
-        # response += f"Beta: {stock1_beta:.2f}, {stock2_beta:.2f}\n"
-        # response += f"Cumulative Returns: {stock1_cumulative_return:.2%}, {stock2_cumulative_return:.2%}"
+        response = f"**Statistics for {stock1} and {stock2}**\n"
+        response += f"Mean: {stock1_mean:.2f}, {stock2_mean:.2f}\n"
+        response += f"Median: {stock1_median:.2f}, {stock2_median:.2f}\n"
+        response += f"Standard Deviation: {stock1_std:.2f}, {stock2_std:.2f}\n"
+        response += f"Covariance: {covariance:.8f}\n"
+        response += f"Correlation Coefficient: {correlation:.2f}\n"
+        response += f"Beta: {stock1_beta:.2f}, {stock2_beta:.2f}\n"
+        response += f"Cumulative Returns: {stock1_cumulative_return:.2%}, {stock2_cumulative_return:.2%}"
         await ctx.send(response)
     else:
         await ctx.send("Not enough data points to calculate the statistics.")
