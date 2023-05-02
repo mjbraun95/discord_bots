@@ -94,6 +94,17 @@ async def choose_prompt(ctx: Any) -> None:
     # Send the response back to the channel
     await send_long_message(ctx, response_text)
 
+async def upcoming_earnings(ctx, stock: str) -> None:
+    # Get the stock information from Yahoo Finance
+    stock_info = yf.Ticker(stock)
+
+    # Get the upcoming earnings date if available
+    if "Earnings" in stock_info.calendar.index:
+        earnings_date = stock_info.calendar.loc["Earnings"].strftime("%Y-%m-%d")
+        await ctx.send(f"The upcoming earnings date for {stock} is {earnings_date}.")
+    else:
+        await ctx.send(f"No upcoming earnings date available for {stock}.")
+
 
 async def compare_two_stocks(ctx, stock1: str, stock2: str, period: str = "1y"):
     # Get the stock data from Yahoo Finance
@@ -250,6 +261,7 @@ def register_bot_commands(bot: commands.Bot) -> None:
     bot.add_command(commands.Command(compare_two_stocks, name="compare"))
     bot.add_command(commands.Command(hello, name="hello"))
     bot.add_command(commands.Command(clear, name="clear"))
+    bot.add_command(commands.Command(upcoming_earnings, name="earnings"))
 
 if __name__ == '__main__':
     credentials = load_credentials('config.json')
