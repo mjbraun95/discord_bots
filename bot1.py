@@ -94,13 +94,15 @@ async def choose_prompt(ctx: Any) -> None:
     # Send the response back to the channel
     await send_long_message(ctx, response_text)
 
+from yahoo_fin import stock_info as si
+
 async def upcoming_earnings(ctx, stock: str) -> None:
     # Get the stock information from Yahoo Finance
-    stock_info = yf.Ticker(stock)
+    stock_info = si.get_quote_table(stock)
 
     # Get the upcoming earnings date if available
-    if "Earnings" in stock_info.calendar.index:
-        earnings_date = stock_info.calendar.loc["Earnings"].strftime("%Y-%m-%d")
+    if "Earnings Date" in stock_info:
+        earnings_date = stock_info["Earnings Date"].strftime("%Y-%m-%d")
         await ctx.send(f"The upcoming earnings date for {stock} is {earnings_date}.")
     else:
         await ctx.send(f"No upcoming earnings date available for {stock}.")
