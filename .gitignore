@@ -4,3 +4,4 @@ bot1_test.py
 config.json
 prompts.json
 .history/
+.vscode/
